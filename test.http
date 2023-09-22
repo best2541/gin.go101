@@ -1,0 +1,17 @@
+GET http://localhost:8080/book
+Content-Type: application/json
+
+{
+
+}
+###
+POST http://localhost:8080/newbook
+Content-Type: application/json
+
+{
+    "ID":"4",
+    "Title":"New",
+    "Author":"Pawat"
+}
+###
+DELETE http://localhost:8080/delete/4

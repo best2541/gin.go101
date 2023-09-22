@@ -1,31 +1,58 @@
 package main
 
 import (
-	"encoding/json"
-	"log"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 type Book struct {
-	Title string `title`
+	ID     string `json:"id"`
+	Title  string `json:"title"`
+	Author string `json:"author"`
 }
 
-func Hello(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html")
-	w.Write(([]byte("<h1>Hello</h1>")))
+var book = []Book{
+	{ID: "1", Title: "Harry potter", Author: "JK Rolling"},
+	{ID: "2", Title: "The amazing spider-man", Author: "Stan lee"},
+	{ID: "3", Title: "Superman", Author: "DC"},
 }
 
-func GetBook(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html")
+func getBook(c *gin.Context) {
+	c.JSON(http.StatusOK, book)
+}
+func newBook(c *gin.Context) {
+	var datas Book
 
-	book := Book{
-		Title: "test",
+	if err := c.ShouldBindJSON(&datas); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
 	}
-	json.NewEncoder(w).Encode(book)
+	book = append(book, datas)
+	c.JSON(http.StatusCreated, book)
 }
+func deleteBook(c *gin.Context) {
+	id := c.Param("id")
 
+	for i, a := range book {
+		if a.ID == id {
+			book = append(book[:i], book[i+1:]...)
+			break
+		}
+	}
+	c.Status(http.StatusNoContent)
+}
 func main() {
-	http.HandleFunc("/", Hello)
-	http.HandleFunc("/book", GetBook)
-	log.Fatal(http.ListenAndServe(":3030", nil))
+	r := gin.New()
+	r.GET("/", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"message": "Hello wolrd",
+		})
+	})
+	r.GET("/book", getBook)
+	r.POST("/newbook", newBook)
+	r.DELETE("/delete/:id", deleteBook)
+	r.Run()
 }
